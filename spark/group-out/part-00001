@@ -1,0 +1,3 @@
+(spark,CompactBuffer(1, 1, 1, 1))
+(hadoop,CompactBuffer(1, 1))
+(hbase,CompactBuffer(1))

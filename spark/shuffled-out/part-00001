@@ -1,0 +1,3 @@
+(spark,ArrayBuffer(1, 1, 1, 1))
+(hadoop,ArrayBuffer(1, 1))
+(hbase,ArrayBuffer(1))

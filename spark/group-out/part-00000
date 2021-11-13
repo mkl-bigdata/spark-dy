@@ -1,0 +1,2 @@
+(hive,CompactBuffer(1, 1))
+(flink,CompactBuffer(1, 1, 1))
