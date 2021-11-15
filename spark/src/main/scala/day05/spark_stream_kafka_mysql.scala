@@ -2,6 +2,7 @@ package day05
 
 import java.sql.{Connection, PreparedStatement, ResultSet}
 
+import day05.spark_stream_kafka_mysql.{appid, gid}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -34,9 +35,18 @@ object spark_stream_kafka_mysql {
 
   val topic = Array("wordcount")
 
-  private val map: mutable.Map[TopicPartition, Long] = getOffset(appid, gid)
 
+
+  /**
+   * 把更新值和偏移量的方法写到一个事务中，要成功都成功，否则回滚
+   * @param: [spark, appid, gid]
+   * @return: void
+   * @author: makuolang
+   * @date: 2021/11/15
+   */
   def kafka_2_mysql(spark:StreamingContext,appid:String,gid:String): Unit ={
+
+    val map: mutable.Map[TopicPartition, Long] = getOffset(spark,appid, gid)
 
     //获取偏移量
     val inputstream: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream(
@@ -75,6 +85,7 @@ object spark_stream_kafka_mysql {
           statement.executeUpdate()
         }
 
+        //把偏移量写到mysql中维护
         val statement2: PreparedStatement = connection.prepareStatement("insert into offset(appid_gid,topic_partition,offset) values(?,?,?) ON DUPLICATE KEY UPDATE offset = ?")
 
         for (range <- ranges) {
@@ -97,8 +108,15 @@ object spark_stream_kafka_mysql {
       }
 
       })}
+  /**
+   * 获取对应appid，gid的偏移量的方法
+   * @param: [spark, appid, gid]
+   * @return: scala.collection.mutable.Map<org.apache.kafka.common.TopicPartition,java.lang.Object>
+   * @author: makuolang
+   * @date: 2021/11/15
+   */
 
-  def getOffset(appid:String,gid:String): mutable.Map[TopicPartition, Long] ={
+  def getOffset(spark:StreamingContext,appid:String,gid:String): mutable.Map[TopicPartition, Long] ={
 
     val map = new mutable.HashMap[TopicPartition, Long]()
 
@@ -132,7 +150,17 @@ object spark_stream_kafka_mysql {
 
       }
     } catch {
-      case e : Exception => e.printStackTrace()
+      case e : Exception => {
+
+        e.printStackTrace()
+
+        //出现错误，进行回滚
+        connection.rollback()
+
+        //停掉程序
+        spark.stop()
+
+      }
     } finally {
 
       if(statement != null){
