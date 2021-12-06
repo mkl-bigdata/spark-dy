@@ -173,5 +173,6 @@
     <orderEntry type="library" name="Maven: org.apache.kafka:kafka-clients:2.4.1" level="project" />
     <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.49" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba:druid:1.1.23" level="project" />
+    <orderEntry type="library" name="scala-sdk-2.11.2" level="application" />
   </component>
 </module>

@@ -12,7 +12,7 @@ object spark_sql_rollUpFlow {
     val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
 
 
-    val df: DataFrame = spark.read.csv("data/data.csv").toDF("uid", "start_time", "end_time", "flow")
+    val df: DataFrame = spark.read.csv("spark/data/data.csv").toDF("uid", "start_time", "end_time", "flow")
 
     df.createTempView("v_flow")
 
